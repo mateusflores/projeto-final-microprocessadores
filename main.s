@@ -49,14 +49,14 @@ OTHER_INTERRUPTS:
     /* Verificar KEY1 (bit 1) */
     andi    r10, r9, 0b0010      /* máscara para KEY1 */
     beq     r10, r0, CHECK_KEY2
-    call    _inverter_direcao_rotacao
+    # call    _inverter_direcao_rotacao
     br      END_PUSHBUTTON
     
     CHECK_KEY2:
     /* Verificar KEY2 (bit 2) */
     andi    r10, r9, 0b0100      /* máscara para KEY2 */
     beq     r10, r0, END_PUSHBUTTON
-    call    _toggle_pausa_rotacao
+    # call     _toggle_pausa_rotacao
     
     END_PUSHBUTTON:
 
@@ -88,7 +88,7 @@ EXT_IRQ0:
     /* END PROLOGO */
     movia   r8, TIMER_STATUS_REG
     stwio   r0, 0(r8)                       /* limpa bit de timeout */
-    call    _atualizar_rotacao_display
+    # call    _atualizar_rotacao_display
     /* START EPILOGO */
     addi    sp, sp, 4
     ldw     ra, 0(sp)
@@ -142,17 +142,17 @@ EXT_IRQ0:
 _start:
     /* HABILITAR INTERRUPCOES */
     /* HABILITAR INTERRUPCOES NO PROCESSADOR */
-    addi    r8, r0, 1       /* define constante = 1 (0001) */
-    wrctl   status, r8      /* habilita interrupcoes no processador */
+    addi    r16, r0, 1       /* define constante = 1 (0001) */
+    wrctl   status, r16      /* habilita interrupcoes no processador */
 
     /* HABILITAR INTERRUPCOES NO IENABLE */
-    movia   r8, 0b0011      /* habilita INTERVAL TIMER e PUSHBTN (IRQs #1 e #2) */
-    wrctl   ienable, r8
+    movia   r16, 0b0011      /* habilita INTERVAL TIMER e PUSHBTN (IRQs #1 e #2) */
+    wrctl   ienable, r16
 
     /* HABILITAR KEY2 EM PUSHBTN */
-    movia   r8, PUSHBTN
-    movi    r9, 0b0010       /* bit referente a KEY1 */
-    stwio   r9, 8(r8)        /* habilita interrupcoes no key1 no pushbutton */
+    movia   r16, PUSHBTN
+    movi    r17, 0b0010       /* bit referente a KEY1 */
+    stwio   r17, 8(r16)        /* habilita interrupcoes no key1 no pushbutton */
 
     movia sp, INIT_STACK
     movia r14, COMANDO                       /* pega o endereco do inicial do comando e armazena em 14 */
@@ -160,52 +160,53 @@ _start:
     movia r4, ASK_COMMAND_STRING
     call  write_string
 
-    movia   r8, UART_DATA_REG
+    movia   r16, UART_DATA_REG
     POLLING_LEITURA:
-        movia  r12, 0x0A     	            /* codigo ASCII do LF (ENTER) */
+        movia  r20, 0x0A     	            /* codigo ASCII do LF (ENTER) */
 
-        ldwio  r9, 0(r8)                    /* copia o valor em DATA_REG para r8 */
-        andi   r10, r9, 0x8000              /* aplica a mascara e pega o resultado */
-        beq    r10, r0, POLLING_LEITURA     /* se o resultado for igual a zero, 
+        ldwio  r17, 0(r16)                    /* copia o valor em DATA_REG para r8 */
+        andi   r18, r17, 0x8000              /* aplica a mascara e pega o resultado */
+        beq    r18, r0, POLLING_LEITURA     /* se o resultado for igual a zero, 
                                             nao ha nada para ler, voltar */
-        andi   r11, r9, 0xff                /* guarda o dado de leitura */
-        stw    r11, 0(r14)                  /* coloca o dado no stack */
+        andi   r19, r17, 0xff                /* guarda o dado de leitura */
+        stw    r19, 0(r14)                  /* coloca o dado no stack */
         addi   r14, r14, 4                  /* avanca o stack em 01 word */
-        beq    r11, r12, REDIRECTION        /* se o dado for igual a ENTER (0A) ir para REDIRECTION */
+        stwio  r19, 0(r16)                   /* echo: reenvia o caractere para o terminal */
+        beq    r19, r20, REDIRECTION        /* se o dado for igual a ENTER (0A) ir para REDIRECTION */
         br     POLLING_LEITURA
 
     REDIRECTION:    /* 20 / 21*/
         movia   r4, COMANDO     /* aponta para o endereco do codigo do comando */
-        ldw     r8, 0(r4)       /* pega o primeiro caractere do comando */
-        ldw     r9, 4(r4)       /* pega o segundo caractere do comando */
+        ldw     r16, 0(r4)       /* pega o primeiro caractere do comando */
+        ldw     r17, 4(r4)       /* pega o segundo caractere do comando */
 
-        addi    r10, r0, 0x30   /* numero 0 em ASCII CODE */
-        addi    r11, r0, 0x31   /* numero 1 em ASCII CODE */
-        addi    r12, r0, 0x32   /* numero 2 em ASCII CODE */
+        addi    r18, r0, 0x30   /* numero 0 em ASCII CODE */
+        addi    r19, r0, 0x31   /* numero 1 em ASCII CODE */
+        addi    r20, r0, 0x32   /* numero 2 em ASCII CODE */
 
         /* Verificar comando 00 ou 01 (LED) */
-        beq     r8, r10, CHECK_LED_COMMAND  /* se primeiro char == 0 */
+        beq     r16, r18, CHECK_LED_COMMAND  /* se primeiro char == 0 */
         
         /* Verificar comando 10 (triangular) */
-        beq     r8, r11, CHECK_TRIANGULAR   /* se primeiro char == 1 */
+        beq     r16, r19, CHECK_TRIANGULAR   /* se primeiro char == 1 */
         
         /* Verificar comando 20 (rotacao) */
-        beq     r8, r12, CHECK_ROTATION     /* se primeiro char == 2 */
+        beq     r16, r20, CHECK_ROTATION     /* se primeiro char == 2 */
         
         br _start
 
     CHECK_LED_COMMAND:
-        beq     r9, r10, TRATAR_LED         /* se segundo char == 0 -> comando 00 */
-        beq     r9, r11, TRATAR_LED         /* se segundo char == 1 -> comando 01 */
+        beq     r17, r18, TRATAR_LED         /* se segundo char == 0 -> comando 00 */
+        beq     r17, r19, TRATAR_LED         /* se segundo char == 1 -> comando 01 */
         br _start
 
     CHECK_TRIANGULAR:
-        beq     r9, r10, TRATAR_TRIANGULAR  /* se segundo char == 0 -> comando 10 */
+        beq     r17, r18, TRATAR_TRIANGULAR  /* se segundo char == 0 -> comando 10 */
         br _start
 
     CHECK_ROTATION:
-        beq     r9, r10, TRATAR_ROTACAO     /* se segundo char == 0 -> comando 20 */
-        beq     r9, r11, CANCELAR_ROTACAO   /* se segundo char == 1 -> comando 21 */
+        beq     r17, r18, TRATAR_ROTACAO     /* se segundo char == 0 -> comando 20 */
+        beq     r17, r19, CANCELAR_ROTACAO   /* se segundo char == 1 -> comando 21 */
         br _start
 
         br _start
@@ -225,12 +226,12 @@ TRATAR_LED:
     ldw     r5, 0(r5)           /* r5 = ação (0/1) */
     
     /* Chamar função externa */
-    call _controlar_led_manual
+    call LEDS
     br   _start
 
 TRATAR_TRIANGULAR:
     /* Chamar função externa que lê switches, calcula e mostra no display */
-    call _tratar_numero_triangular
+    call TRIANGULAR
     br   _start
 
 TRATAR_ROTACAO:
@@ -241,7 +242,7 @@ TRATAR_ROTACAO:
     addi    r22, r0, 1          /* r22 = direção (1=direita, 0=esquerda) */
     
     /* Chamar função externa */
-    call _iniciar_rotacao_display
+    # call _iniciar_rotacao_display
     br   _start
 
 CANCELAR_ROTACAO:
@@ -249,26 +250,25 @@ CANCELAR_ROTACAO:
     addi    r23, r0, 0          /* r23 = flag de rotação inativa */
     
     /* Chamar função externa */
-    call _parar_rotacao_display
+    #call _parar_rotacao_display
     br   _start
 
 
-/* escreve uma string no console do UART ("Digite o codigo do comando: ") */
 write_string:
     /* 
     argumentos:
         r4 : endereco inicial de leitura (primeiro caractere)
     */
-    movia   r10, UART_CONTROL_REG
-    movia   r12, UART_DATA_REG
+    movia   r18, UART_CONTROL_REG
+    movia   r20, UART_DATA_REG
     POLLING_ESCRITA:
-        ldwio  r8, 0(r10)                   /* copia o valor de CONTROL_REG */
-        andhi  r9, r13, 0xFFFF              /* aplica a mascara para verificar WSPACE */
-        bne    r9, r0, POLLING_ESCRITA      /* se n houver espaco no buffer, volte */
+        ldwio  r16, 0(r18)                   /* copia o valor de CONTROL_REG */
+        andhi  r17, r21, 0xFFFF              /* aplica a mascara para verificar WSPACE */
+        bne    r17, r0, POLLING_ESCRITA      /* se n houver espaco no buffer, volte */
 
-        ldb    r11, 0(r4)                    /* carrega chars */
-        beq    r11, r0, RET_STR              /* se achou o zero entao acabou a string */
-        stwio  r11, 0(r12)                   /* escreve o dado em DATA de DATA_REG */
+        ldb    r19, 0(r4)                    /* carrega chars */
+        beq    r19, r0, RET_STR              /* se achou o zero entao acabou a string */
+        stwio  r19, 0(r20)                   /* escreve o dado em DATA de DATA_REG */
         addi   r4, r4, 1
 
         br POLLING_ESCRITA
@@ -288,16 +288,3 @@ ASK_COMMAND_STRING:
 .global COD_7SEG
 COD_7SEG:
     .byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111
-
-/* Variáveis globais para controle de rotação */
-.global ROTACAO_ATIVA
-ROTACAO_ATIVA:
-    .word 0
-
-.global DIRECAO_ROTACAO
-DIRECAO_ROTACAO:
-    .word 1
-
-.global ROTACAO_PAUSADA
-ROTACAO_PAUSADA:
-    .word 0

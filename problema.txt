@@ -1,0 +1,12 @@
+Neste projeto final seu grupo deve desenvolver um aplicativo console que aceite comandos do usuario e, para cada comando, desempenhe uma certa ação na placa DE2 Altera. O console deve ser implementado via comunicação UART, utilizando a janela terminal do programa Altera Monitor. Ao ser iniciado, seu programa deve mostrar a seguinte frase no terminal:
+	Entre com o comando:
+E esperar que o usuario entre com algum comando. Os comandos são compostos por, no máximo, dois inteiros conforme a tabela a seguir:
+	Comando 		Ação
+	00 xx			Acender o led vermelho na posição xx.
+	01 xx			Apagar o led vermelho na posição xx.
+	10 			Ler o conteudo das chaves (8 bits – SW7-SW0) e calcular o respectivo número triangular. 
+				O resultado deve ser mostrado nos displays de 7 segmentos em decimal.
+	20 			Mostrar a frase 'Oi 2026' nos displays de 7 segmentos e rotaciona-la em intervalos de 200ms para a direita. Se o botão (pushbutton) KEY1 for 					pressionado o sentido de rotação deve mudar. Se o botão (pushbutton) KEY2 for pressionado, a rotação deve ser pausada. Pressionando novamente KEY2 				deve resumir a rotação
+
+	21 			Cancela rotação da palavra.
+Observe que o enunciado deixa algumas questoes em aberto. Por exemplo, o que deve acontecer caso o valor de um numero triangular seja mostrado nos displays e um comando de rotação (comando 20) seja entrado? Perder o numero ou restaurá-lo assim que a rotação for cancelada? O grupo está livre para escolher a melhor forma de enfrentar essa e outras questões. No entanto, isso deve estar presente no relatório do projeto a ser entregue ao professor no final do semestre. Para implementação do aplicativo utilize a linguagem de montagem do Nios II e os recursos da DE2 Media Computer.
