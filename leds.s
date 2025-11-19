@@ -29,10 +29,10 @@ LEDS:
     movia   r11, DATA_LEDS_R        /* guarda o endereco do DATA REG dos LEDS R */
 
     /* conversao decimal para binario */
-    ldw     r13, 16(r4)             /* pega o digito decimal menos significativo */
+    ldw     r13, 4(r5)                 /* pega o digito decimal menos significativo */
     subi    r13, r13, 0x30          /* subtrai 0x30 do digito menos significativo */
 
-    ldw     r14, 12(r4)             /* pega o digito decimal mais significativo */
+    ldw     r14, 0(r5)                 /* pega o digito decimal mais significativo */
     subi    r14, r14, 0x30          /* subtrai 0x30 do digito mais significativo */
 
     /* multiplica por dez : multiplica por oito e soma duas vezes */
@@ -45,7 +45,7 @@ LEDS:
 
     /* verificar se devemos acender ou apagar o led */
     addi    r14, r0, 1              /* armazena o valor 1 em r14 para comparacao */
-    ldw     r15, 4(r4)              /* pega o caractere que define a acao (apagar ou acender) */
+    ldw     r15, 0(r4)             /* pega o caractere que define a acao (apagar ou acender) */
     subi    r15, r15, 0x30          /* subtrai 0x30 do valor pego na linha anterior - 1 == 0x31 e 0 == 0x30 */
     beq     r15, r0,  ACENDER_LED   /* codigo 00 */
     beq     r15, r13, APAGAR_LED    /* codigo 01 */

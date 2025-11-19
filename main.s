@@ -217,13 +217,11 @@ _start:
 TRATAR_LED:
     /* Ler terceiro caractere (posição do LED xx) */
     movia   r4, COMANDO
-    addi    r4, r4, 8
-    ldw     r4, 0(r4)           /* r4 = posição do LED (0-17) */
+    addi    r4, r4, 4
     
     /* Ler quarto caractere (0=apagar, 1=acender) */
     movia   r5, COMANDO
     addi    r5, r5, 12
-    ldw     r5, 0(r5)           /* r5 = ação (0/1) */
     
     /* Chamar função externa */
     call LEDS
