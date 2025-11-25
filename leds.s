@@ -68,8 +68,8 @@ LEDS:
         ldwio   r14, 0(r11)          /* le atual estado dos leds */
         addi    r15, r0, 1           /* inicia a mascara como 0b0001 */
         sll     r15, r15, r13        /* desloca o digito 1 para a casa binaria que representa o led a ser aceso */
-        nor     r16, r15, r0         /* Aplica mascara para apagar apenas o LED selecionado,
-        and     r14, r14, r16           sem afetar o estado dos demais */        
+        nor     r16, r15, r0         /* Aplica mascara para apagar apenas o LED selecionado, */
+        and     r14, r14, r16        /*   sem afetar o estado dos demais */        
         stwio   r14, 0(r11)          /* atualiza o estado dos leds */
 
         /* EPILOGO */
