@@ -1,7 +1,7 @@
-/* INIT TRATAR LED - callee-saved registers renamed to r11..r15 */
+/* INIT LEDS - callee-saved r11..r15 */
 
 /*
-    r4: endereco do primeiro caractere do comando
+    r5: endereco do primeiro caractere do comando
     0x30 : codigo ascii do caractere '0'
     00 : acender led
     01 : apagar led
@@ -14,7 +14,7 @@
 
 .global LEDS
 LEDS:
-    /* START - PROLOGO */
+    /*PROLOGO */
     stw     r11, 0(sp)
     subi    sp, sp, 4
     stw     r12, 0(sp)
@@ -24,45 +24,50 @@ LEDS:
     stw     r14, 0(sp)
     subi    sp, sp, 4
     stw     r15, 0(sp)
-    /* END - PROLOGO */
+    /*PROLOGO */
 
-    movia   r11, DATA_LEDS_R        /* guarda o endereco do DATA REG dos LEDS R */
+    movia   r11, DATA_LEDS_R        /* guardando o endereco dos LEDS em r11 */
 
-    /* conversao decimal para binario */
-    ldw     r13, 4(r5)                 /* pega o digito decimal menos significativo */
-    subi    r13, r13, 0x30          /* subtrai 0x30 do digito menos significativo */
+    /* convertendo num decimal para binario */
+    /* registrador r5 contem entrada do usuario em ascii */
+    ldw     r13, 4(r5)              /* carrega caractere decimal que representa a unidade em r13 */
+    subi    r13, r13, 0x30          /* subtrai 0x30 para converter numero ascii para binario */
 
-    ldw     r14, 0(r5)                 /* pega o digito decimal mais significativo */
-    subi    r14, r14, 0x30          /* subtrai 0x30 do digito mais significativo */
+    ldw     r14, 0(r5)              /* carrega caractere decimal que representa a dezena em r14 */
+    subi    r14, r14, 0x30          /* subtrai 0x30 para converter numero ascii para binario */
 
-    /* multiplica por dez : multiplica por oito e soma duas vezes */
-    slli    r15, r14, 3             /* shift left 3 bits == multiplicar por 8 */
-    add     r15, r15, r14           /* soma uma vez - primeira */
-    add     r15, r15, r14           /* soma uma vez - segunda */
+    /* multiplica r14 por 10 */
+    /* multiplicacao em etapas (multiplica por 8 e soma o numero duas vezes) */
+    slli    r15, r14, 3             /* shift left 3 bits para multiplicar por 8 */
+    add     r15, r15, r14           /* somando r14 pela primeira vez */
+    add     r15, r15, r14           /* somando r14 pela segunda vez */
 
-    /* resultado final da soma */
+    /* Resultado final em binario da entrada do usuario */
+    /* Soma da dezena e unidade obtidos anteriormente em r13 */
     add     r13, r13, r15
 
-    /* verificar se devemos acender ou apagar o led */
-    addi    r14, r0, 1              /* armazena o valor 1 em r14 para comparacao */
-    ldw     r15, 0(r4)             /* pega o caractere que define a acao (apagar ou acender) */
-    subi    r15, r15, 0x30          /* subtrai 0x30 do valor pego na linha anterior - 1 == 0x31 e 0 == 0x30 */
+    /* checa se comando indica para acender ou apagar led */
+    addi    r14, r0, 1              /* armazena 1 em r14 para comparacao futura */
+    ldw     r15, 0(r4)              /* pega o caractere que indica o comando e armazena em r15 */
+    subi    r15, r15, 0x30          /* conversao do caractere ascii do comando em r15 para binario */
     beq     r15, r0,  ACENDER_LED   /* codigo 00 */
     beq     r15, r13, APAGAR_LED    /* codigo 01 */
 
-    /*  
-        r11 : endereco do DATA REG dos leds r
-        r4 : endereco onde comeca o comando na memoria
-        r13 : numero decimal que representa o led a ser manipulado
-    */
-    APAGAR_LED:
-        ldwio   r14, 0(r11)          /* LER ESTADO DOS LEDS */
-        addi    r15, r0, 1           /* inicializa a mascara como 0b0001 */
-        sll     r15, r15, r13        /* leva o digito 1 para a casa binaria correta */
-        sub     r14, r14, r15        /* estados_dos_leds - mascara => apagar o led */
-        stwio   r14, 0(r11)          /* escreve o estado dos leds atualizado */
+    ACENDER_LED:
+        ldwio   r14, 0(r11)          /* le atual estado dos leds */
+        addi    r15, r0, 1           /* inicia mascara como 0b0001 */
+        sll     r15, r15, r13        /* desloca o digito 1 para a casa binaria que representa o led a ser aceso */
+        or      r14, r14, r15        /* acende o led com base na posicao definida em r15 */
+        stwio   r14, 0(r11)          /* atualiza o estado dos leds */
 
-        /* START - EPILOGO */
+    APAGAR_LED:
+        ldwio   r14, 0(r11)          /* le atual estado dos leds */
+        addi    r15, r0, 1           /* inicia a mascara como 0b0001 */
+        sll     r15, r15, r13        /* desloca o digito 1 para a casa binaria que representa o led a ser aceso */
+        sub     r14, r14, r15        /* apaga o led com base na posicao definida em r15 */
+        stwio   r14, 0(r11)          /* atualiza o estado dos leds */
+
+        /* EPILOGO */
         ldw     r15, 0(sp)
         addi    sp, sp, 4
         ldw     r14, 0(sp)
@@ -72,18 +77,11 @@ LEDS:
         ldw     r12, 0(sp)
         addi    sp, sp, 4
         ldw     r11, 0(sp)
-        /* END - EPILOGO */
+        /* EPILOGO */
 
         ret
 
-    ACENDER_LED:
-        ldwio   r14, 0(r11)          /* LER ESTADO DOS LEDS */
-        addi    r15, r0, 1           /* inicializa a mascara como 0b0001 */
-        sll     r15, r15, r13        /* leva o digito 1 para a casa binaria correta */
-        or      r14, r14, r15        /* estados_dos_leds OR mascara => acende o led */
-        stwio   r14, 0(r11)          /* escreve o estado dos leds atualizado */
-
-        /* START - EPILOGO */
+        /* EPILOGO */
         ldw     r15, 0(sp)
         addi    sp, sp, 4
         ldw     r14, 0(sp)
@@ -93,7 +91,7 @@ LEDS:
         ldw     r12, 0(sp)
         addi    sp, sp, 4
         ldw     r11, 0(sp)
-        /* END - EPILOGO */
+        /* EPILOGO */
 
         ret
 
