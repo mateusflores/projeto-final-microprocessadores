@@ -59,7 +59,8 @@ LEDS:
         ldwio   r14, 0(r11)          /* LER ESTADO DOS LEDS */
         addi    r15, r0, 1           /* inicializa a mascara como 0b0001 */
         sll     r15, r15, r13        /* leva o digito 1 para a casa binaria correta */
-        sub     r14, r14, r15        /* estados_dos_leds - mascara => apagar o led */
+        nor     r16, r15, r0       /* r16 = NOT r15 */
+        and     r14, r14, r16      /* limpa somente o bit desejado */        /* estados_dos_leds - mascara => apagar o led */
         stwio   r14, 0(r11)          /* escreve o estado dos leds atualizado */
 
         /* START - EPILOGO */
