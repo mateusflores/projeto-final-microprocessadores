@@ -50,6 +50,20 @@ LEDS:
         or      r14, r14, r15        /* acende o led com base na posicao definida em r15 */
         stwio   r14, 0(r11)          /* atualiza o estado dos leds */
 
+        /* EPILOGO */
+        ldw     r15, 0(sp)
+        addi    sp, sp, 4
+        ldw     r14, 0(sp)
+        addi    sp, sp, 4
+        ldw     r13, 0(sp)
+        addi    sp, sp, 4
+        ldw     r12, 0(sp)
+        addi    sp, sp, 4
+        ldw     r11, 0(sp)
+        /* EPILOGO */
+
+        ret
+
     APAGAR_LED:
         ldwio   r14, 0(r11)          /* le atual estado dos leds */
         addi    r15, r0, 1           /* inicia a mascara como 0b0001 */
@@ -70,17 +84,4 @@ LEDS:
         /* EPILOGO */
 
         ret
-
-        /* EPILOGO */
-        ldw     r15, 0(sp)
-        addi    sp, sp, 4
-        ldw     r14, 0(sp)
-        addi    sp, sp, 4
-        ldw     r13, 0(sp)
-        addi    sp, sp, 4
-        ldw     r12, 0(sp)
-        addi    sp, sp, 4
-        ldw     r11, 0(sp)
-        /* EPILOGO */
-
-        ret
+/* FIM LEDS */
