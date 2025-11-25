@@ -1,15 +1,5 @@
 /* INIT LEDS - callee-saved r11..r15 */
 
-/*
-    r5: endereco do primeiro caractere do comando
-    0x30 : codigo ascii do caractere '0'
-    00 : acender led
-    01 : apagar led
-
-    0       0       |       0        1       LF
-    0       4       8       12       16      20
-*/
-
 .equ DATA_LEDS_R, 0x10000000
 
 .global LEDS
@@ -94,5 +84,3 @@ LEDS:
         /* EPILOGO */
 
         ret
-
-/* END TRATAR LED */
