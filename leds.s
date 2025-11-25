@@ -41,7 +41,7 @@ LEDS:
     ldw     r15, 0(r4)              /* pega o caractere que indica o comando e armazena em r15 */
     subi    r15, r15, 0x30          /* conversao do caractere ascii do comando em r15 para binario */
     beq     r15, r0,  ACENDER_LED   /* codigo 00 */
-    beq     r15, r13, APAGAR_LED    /* codigo 01 */
+    beq     r15, r14, APAGAR_LED    /* codigo 01 */
 
     ACENDER_LED:
         ldwio   r14, 0(r11)          /* le atual estado dos leds */
